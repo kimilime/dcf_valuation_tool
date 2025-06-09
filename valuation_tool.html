@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商业地产DCF估值工具 (支持小数)</title>
+    <title>商业地产DCF估值工具 (优化版)</title>
     <style>
         :root {
             --primary-color: #007bff;
@@ -169,7 +169,7 @@
             font-size: 14px;
             margin-top: 10px;
             text-align: center;
-            display: none; /* Initially hidden */
+            min-height: 1.2em;
         }
         
         .footer {
@@ -191,11 +191,11 @@
             P = (NOI₁/(r-g)) * [1 - ((1+g)/(1+r))ⁿ]
         </div>
 
-        <form id="valuationForm">
+        <form id="valuationForm" novalidate>
             <div class="form-group">
                 <label for="noi">NOI₁：首年净营业收入</label>
                 <div class="input-wrapper">
-                    <input type="number" id="noi" placeholder="例如：500" required>
+                    <input type="number" id="noi" step="any" placeholder="例如：500.5" required>
                     <span class="input-unit">万</span>
                 </div>
             </div>
@@ -254,17 +254,20 @@
         form.addEventListener('submit', function(e) {
             e.preventDefault(); // 阻止表单默认提交行为
 
-            // 隐藏上一次的结果和错误信息
             resultContainer.style.display = 'none';
-            errorMessage.style.display = 'none';
+            errorMessage.textContent = ''; // 清空错误信息
 
             // 1. 获取并转换输入值
             const noi = parseFloat(noiInput.value);
-            const r = parseFloat(rInput.value) / 100; // 折现率转为小数
-            const g = parseFloat(gInput.value) / 100; // 增长率转为小数
-            const n = parseInt(nInput.value, 10);
+            const r = parseFloat(rInput.value) / 100;
+            const g = parseFloat(gInput.value) / 100;
+            const n = parseFloat(nInput.value); // 先用 parseFloat 获取，再检查是否为整数
 
-            // 2. 输入验证
+            // 2. === 更新点 3：增强的自定义验证 ===
+            if (noiInput.value === '' || rInput.value === '' || gInput.value === '' || nInput.value === '') {
+                showError('所有字段都必须填写。');
+                return;
+            }
             if (isNaN(noi) || isNaN(r) || isNaN(g) || isNaN(n)) {
                 showError('所有字段都必须填写有效的数字。');
                 return;
@@ -273,7 +276,7 @@
                 showError('首年净营业收入 (NOI) 必须为正数。');
                 return;
             }
-            if (n <= 0) {
+            if (!Number.isInteger(n) || n <= 0) {
                 showError('收益年限 (n) 必须为正整数。');
                 return;
             }
@@ -293,7 +296,6 @@
         
         function showError(message) {
             errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
         }
 
         function displayResult(value) {
@@ -307,7 +309,6 @@
         }
 
         copyButton.addEventListener('click', function() {
-            // 只复制数字部分
             const rawValue = resultValue.textContent.replace(' 万', '').replace(/,/g, '');
             navigator.clipboard.writeText(rawValue).then(() => {
                 copyButton.textContent = '已复制!';
