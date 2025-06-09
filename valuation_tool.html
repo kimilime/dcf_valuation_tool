@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商业地产DCF估值工具</title>
+    <title>商业地产DCF估值工具 (支持小数)</title>
     <style>
         :root {
             --primary-color: #007bff;
@@ -184,7 +184,7 @@
 <body>
 
     <div class="container">
-        <h1>商业地产DCF估值工具 by Terence Wang</h1>
+        <h1>商业地产DCF估值工具</h1>
         <p class="subtitle">基于有限年期增长年金模型</p>
 
         <div class="formula">
@@ -203,7 +203,7 @@
             <div class="form-group">
                 <label for="discountRate">r：折现率</label>
                 <div class="input-wrapper">
-                    <input type="number" id="discountRate" placeholder="例如：8" required>
+                    <input type="number" id="discountRate" step="any" placeholder="例如：8.5" required>
                     <span class="input-unit">%</span>
                 </div>
             </div>
@@ -211,7 +211,7 @@
             <div class="form-group">
                 <label for="growthRate">g：NOI年增长率</label>
                 <div class="input-wrapper">
-                    <input type="number" id="growthRate" placeholder="例如：3" required>
+                    <input type="number" id="growthRate" step="any" placeholder="例如：2.5" required>
                     <span class="input-unit">%</span>
                 </div>
             </div>
