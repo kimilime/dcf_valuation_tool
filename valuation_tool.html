@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商业地产DCF估值工具</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --light-gray: #f8f9fa;
+            --gray: #6c757d;
+            --dark-gray: #343a40;
+            --border-color: #dee2e6;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--dark-gray);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 25px;
+        }
+
+        .formula {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 25px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .result-container {
+            margin-top: 25px;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light-gray);
+            border: 1px solid var(--border-color);
+            display: none; /* Initially hidden */
+        }
+
+        .result-title {
+            font-size: 16px;
+            color: var(--gray);
+            margin: 0 0 10px 0;
+        }
+
+        .result-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--success-color);
+            word-wrap: break-word;
+        }
+        
+        #copyButton {
+            background-color: var(--gray);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #copyButton:hover {
+            background-color: var(--dark-gray);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none; /* Initially hidden */
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>商业地产DCF估值工具 by Terence Wang</h1>
+        <p class="subtitle">基于有限年期增长年金模型</p>
+
+        <div class="formula">
+            P = (NOI₁/(r-g)) * [1 - ((1+g)/(1+r))ⁿ]
+        </div>
+
+        <form id="valuationForm">
+            <div class="form-group">
+                <label for="noi">NOI₁：首年净营业收入</label>
+                <div class="input-wrapper">
+                    <input type="number" id="noi" placeholder="例如：500" required>
+                    <span class="input-unit">万</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="discountRate">r：折现率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="discountRate" placeholder="例如：8" required>
+                    <span class="input-unit">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="growthRate">g：NOI年增长率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="growthRate" placeholder="例如：3" required>
+                    <span class="input-unit">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="years">n：收益年限</label>
+                 <div class="input-wrapper">
+                    <input type="number" id="years" placeholder="例如：10" required>
+                    <span class="input-unit">年</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">计 算</button>
+        </form>
+        
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="result" class="result-container">
+            <p class="result-title">项目估值 (P)</p>
+            <p id="resultValue" class="result-value"></p>
+            <button id="copyButton">复制结果</button>
+        </div>
+        
+        <div class="footer">
+            免责声明：本工具仅供学习和估算参考，不构成任何投资建议。
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('valuationForm');
+        const noiInput = document.getElementById('noi');
+        const rInput = document.getElementById('discountRate');
+        const gInput = document.getElementById('growthRate');
+        const nInput = document.getElementById('years');
+        const resultContainer = document.getElementById('result');
+        const resultValue = document.getElementById('resultValue');
+        const errorMessage = document.getElementById('errorMessage');
+        const copyButton = document.getElementById('copyButton');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表单默认提交行为
+
+            // 隐藏上一次的结果和错误信息
+            resultContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            // 1. 获取并转换输入值
+            const noi = parseFloat(noiInput.value);
+            const r = parseFloat(rInput.value) / 100; // 折现率转为小数
+            const g = parseFloat(gInput.value) / 100; // 增长率转为小数
+            const n = parseInt(nInput.value, 10);
+
+            // 2. 输入验证
+            if (isNaN(noi) || isNaN(r) || isNaN(g) || isNaN(n)) {
+                showError('所有字段都必须填写有效的数字。');
+                return;
+            }
+            if (noi <= 0) {
+                showError('首年净营业收入 (NOI) 必须为正数。');
+                return;
+            }
+            if (n <= 0) {
+                showError('收益年限 (n) 必须为正整数。');
+                return;
+            }
+            if (r <= g) {
+                showError('错误：折现率 (r) 必须大于NOI增长率 (g)。');
+                return;
+            }
+
+            // 3. 执行计算
+            const numerator = 1 - Math.pow((1 + g) / (1 + r), n);
+            const denominator = r - g;
+            const p = (noi / denominator) * numerator;
+
+            // 4. 显示结果
+            displayResult(p);
+        });
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function displayResult(value) {
+            const formattedValue = value.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            resultValue.textContent = formattedValue + ' 万';
+            resultContainer.style.display = 'block';
+        }
+
+        copyButton.addEventListener('click', function() {
+            // 只复制数字部分
+            const rawValue = resultValue.textContent.replace(' 万', '').replace(/,/g, '');
+            navigator.clipboard.writeText(rawValue).then(() => {
+                copyButton.textContent = '已复制!';
+                setTimeout(() => {
+                    copyButton.textContent = '复制结果';
+                }, 1500);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        });
+
+    </script>
+</body>
+</html>
